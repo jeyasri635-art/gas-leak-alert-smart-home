@@ -1,0 +1,88 @@
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("message-input");
+
+let messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+
+// Load old m
+
+  addMessage(text, "sent");
+  input.value = "";
+
+  setTimeout(() => {
+    const reply = getBotReply(text);
+    addMessage(ressages
+window.onload = () => {
+  messages.forEach(msg => addMessageToUI(msg.text, msg.type));
+};
+
+// Send message
+function sendMessage() {
+  const text = input.value.trim();
+  if (text === "") return;eply, "received");
+  }, 500);
+}
+
+// Store + display
+function addMessage(text, type) {
+  const msg = { text, type };
+  messages.push(msg);
+  localStorage.setItem("chatMessages", JSON.stringify(messages));
+  addMessageToUI(text, type);
+}
+
+// UI render
+function addMessageToUI(text, type) {
+  const div = document.createElement("div");
+  div.classList.add("message", type);
+  div.innerText = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 🧠 Simple AI Logic
+function getBotReply(userInput) {
+  const text = userInput.toLowerCase();
+
+  if (text.includes("hi") || text.includes("hello")) {
+    return "Hello! How can I help you?";
+  }
+
+  if (text.includes("your name")) {
+    return "I'm your offline assistant 🤖";
+  }
+
+  if (text.includes("how are you")) {
+    return "I'm doing great! Thanks for asking 😊";
+  }
+
+  if (text.includes("time")) {
+    return "Current time is: " + new Date().toLocaleTimeString();
+  }
+
+  if (text.includes("date")) {
+    return "Today is: " + new Date().toLocaleDateString();
+  }
+
+  if (text.includes("weather")) {
+    return "I can't check live weather offline 😅";
+  }
+
+  if (text.includes("bye")) {
+    return "Goodbye! Have a nice day 👋";
+  }
+
+  // Math solving
+  try {
+    if (text.match(/^[0-9+\-*/(). ]+$/)) {
+      return "Answer: " + eval(text);
+    }
+  } catch {}
+
+  // Default reply
+  return "Sorry, I don't understand that yet 🤔";
+}
+
+// Enter key
+input.addEventListener("keypress", function (e) {
+  if (e.key === "Enter") sendMessage();
+});
