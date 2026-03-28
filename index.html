@@ -1,0 +1,268 @@
+{
+  "name": "gas-leak-alert",
+  "version": "1.0.0",
+  "description": "Gas Leak Alert Smart Home",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "twilio": "^4.0.0"
+  }
+}
+2️⃣ BACKEND — server.js
+const express = require("express");
+const bodyParser = require("body-parser");
+const session = require("express-session");
+const path = require("path");
+
+// 🔴 Twilio setup (PUT YOUR KEYS)
+const accountSid = "YOUR_TWILIO_SID";
+const authToken = "YOUR_TWILIO_AUTH_TOKEN";
+const client = require("twilio")(accountSid, authToken);
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(express.static("public"));
+app.use(session({
+    secret: "gasleaksecret",
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Temporary database
+let users = [];
+let contacts = [];
+
+// SIGNUP
+app.post("/signup", (req,res)=>{
+    users.push(req.body);
+    res.send("Signup success");
+});
+
+// LOGIN
+app.post("/login",(req,res)=>{
+    const user = users.find(u=>u.email===req.body.email && u.password===req.body.password);
+    if(user){
+        req.session.user = user;
+        res.send("success");
+    } else res.send("fail");
+});
+
+// ADD CONTACT
+app.post("/addContact",(req,res)=>{
+    contacts.push(req.body);
+    res.send(contacts);
+});
+
+// 🚨 GAS LEAK TRIGGER API
+app.post("/gasLeak", async (req,res)=>{
+    try {
+        for (let c of contacts) {
+
+            // 📞 CALL
+            await client.calls.create({
+                url: "http://demo.twilio.com/docs/voice.xml",
+                to: c.phone,
+                from: "YOUR_TWILIO_NUMBER"
+            });
+
+            // 📍 SMS LOCATION
+            await client.messages.create({
+                body: `⚠️ Gas Leak Detected! Location: ${req.body.location}`,
+                to: c.phone,
+                from: "YOUR_TWILIO_NUMBER"
+            });
+        }
+        res.send("Emergency Triggered");
+    } catch(err){
+        res.send(err.message);
+    }
+});
+
+app.listen(3000, ()=> console.log("Server running on http://localhost:3000"));
+3️⃣ FRONTEND — style.css
+body{
+  font-family: Arial;
+  margin:0;
+  background:#fff;
+  text-align:center;
+}
+
+header{
+  background:#ff3b3b;
+  color:white;
+  padding:20px;
+}
+
+button{
+  padding:15px 25px;
+  margin:10px;
+  font-size:18px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.primary{ background:orange; }
+.danger{ background:red; color:white; }
+
+.card{
+  margin:20px auto;
+  padding:20px;
+  width:80%;
+  box-shadow:0 0 10px gray;
+}
+4️⃣ HOME PAGE — index.html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gas Leak Alert</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+<h1>🔥 Gas Leak Alertment in Home</h1>
+<p>Protect Your Home From Gas Leaks</p>
+<a href="login.html"><button class="primary">Get Started</button></a>
+</header>
+
+<div class="card">
+<h2>How it Works</h2>
+<p>1️⃣ Detect Gas → 2️⃣ Alarm → 3️⃣ Call + SMS + Location</p>
+<button onclick="demoAlert()">Emergency Demo</button>
+</div>
+
+<script>
+function demoAlert(){
+ alert("⚠️ Gas Leak Detected Demo!");
+}
+</script>
+
+</body>
+</html>
+5️⃣ LOGIN PAGE — login.html
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Login</h2>
+<input id="email" placeholder="Email"><br><br>
+<input id="pass" type="password" placeholder="Password"><br><br>
+<button onclick="login()">Login</button>
+
+<script>
+async function login(){
+ let res = await fetch("/login",{
+   method:"POST",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({
+     email:email.value,
+     password:pass.value
+   })
+ });
+ let data = await res.text();
+ if(data=="success") location.href="dashboard.html";
+ else alert("Login Failed");
+}
+</script>
+
+</body>
+</html>
+6️⃣ DASHBOARD — dashboard.html
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🏠 Dashboard</h1>
+
+<h3>Sensor Status: ✅ Connected</h3>
+
+<button class="danger" onclick="simulateGas()">🚨 Simulate Gas Leak</button>
+
+<h2>Add Emergency Contact</h2>
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Phone">
+<button onclick="addContact()">Add</button>
+
+<audio id="alarm" src="alarm.mp3"></audio>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+7️⃣ MAIN JAVASCRIPT — script.js
+// 🔔 Browser Notification Permission
+Notification.requestPermission();
+
+// Add contact
+async function addContact(){
+ await fetch("/addContact",{
+   method:"POST",
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({
+     name:name.value,
+     phone:phone.value
+   })
+ });
+ alert("Contact Added");
+}
+
+// 🚨 GAS LEAK SIMULATION
+async function simulateGas(){
+
+  // 🔊 Alarm Sound
+  document.getElementById("alarm").play();
+
+  // 📳 Vibrate
+  if(navigator.vibrate) navigator.vibrate([500,300,500,300]);
+
+  // 🔔 Notification
+  new Notification("⚠️ GAS LEAK DETECTED!");
+
+  // 📍 Get Location
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const location =
+      `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+
+    await fetch("/gasLeak",{
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({location})
+    });
+
+    alert("Emergency Contacts Notified!");
+  });
+}
+8️⃣ README.md
+# Gas Leak Alert Website
+
+## Install
+npm install
+
+## Run
+node server.js
+
+Open:
+http://localhost:3000
+▶️ HOW TO RUN (IMPORTANT)
+
+Open terminal inside project folder:
+
+npm install
+node server.js
+
+Open browser:
+
+http://localhost:3000
