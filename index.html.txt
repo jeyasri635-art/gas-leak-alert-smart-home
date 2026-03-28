@@ -1,0 +1,93 @@
+HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gas Leak Alert System</title>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #020617;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #22c55e;
+        }
+
+        .container {
+            padding: 40px;
+        }
+
+        .status {
+            font-size: 24px;
+            margin: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 18px;
+            background-color: #22c55e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #16a34a;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #020617;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🔥 Gas Leak Alert Smart Home</h1>
+        <p>Safety Monitoring System</p>
+    </header>
+
+    <div class="container">
+        <h2>Project Overview</h2>
+        <p>This system detects gas leakage and alerts users for safety.</p>
+
+        <div class="status" id="statusText">
+            Status: SAFE ✅
+        </div>
+
+        <button onclick="checkGas()">Check Gas Status</button>
+    </div>
+
+    <footer>
+        <p>© 2026 Gas Leak Alert Project</p>
+    </footer>
+
+    <script>
+        function checkGas() {
+            let random = Math.random();
+
+            if (random > 0.5) {
+                document.getElementById("statusText").innerHTML = "⚠️ Gas Leak Detected!";
+                alert("⚠️ Warning! Gas Leak Detected!");
+            } else {
+                document.getElementById("statusText").innerHTML = "Status: SAFE ✅";
+                alert("✅ No Gas Leak. Safe!");
+            }
+        }
+    </script>
+
+</body>
+</html>
